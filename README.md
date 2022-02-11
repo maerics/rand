@@ -11,7 +11,7 @@ Usage:
 
 Flags:
   -a, --base64         print random bytes encoded as Base64
-  -b, --binary         print random bytes directly without formatting
+  -b, --binary         print random bytes directly without formatting or trailing newline
   -h, --help           help for rand
   -n, --omit-newline   do not print the trailing newline character
   -s, --seed string    seed value as a decimal 64bit integer using an insecure random source

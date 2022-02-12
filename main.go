@@ -46,7 +46,7 @@ func main() {
 
 			switch true {
 			case formatBase64 && formatBinary:
-				fatal(fmt.Errorf(`"formatBase64", "formatBinary"`), "incompatible flags")
+				fatal(fmt.Errorf(`"--base64", "--binary"`), "incompatible flags")
 			case formatBase64:
 				fmt.Print(base64.StdEncoding.EncodeToString(bs) + trailingNewline)
 			case formatBinary:
@@ -61,9 +61,9 @@ func main() {
 	}
 
 	flags := cmd.Flags()
-	flags.StringVarP(&seedstr, "seed", "s", "", "seed value as a decimal 64bit integer using an insecure random source")
-	flags.BoolVarP(&formatBase64, "base64", "a", false, "print random bytes encoded as Base64")
-	flags.BoolVarP(&formatBinary, "binary", "b", false, "print random bytes directly without formatting or trailing newline")
+	flags.StringVarP(&seedstr, "seed", "s", "", "use an insecure random source with seed integer")
+	flags.BoolVarP(&formatBase64, "base64", "a", false, "print random bytes encoded as base64")
+	flags.BoolVarP(&formatBinary, "binary", "b", false, "print random bytes directly without formatting")
 	flags.BoolVarP(&omitNewline, "omit-newline", "n", false, "do not print the trailing newline character")
 
 	if err := cmd.Execute(); err != nil {

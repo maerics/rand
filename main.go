@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var formatBase64, formatBinary, formatPassword, omitNewline bool
+var formatBase64, formatBinary, formatPassword, omitNewline, formatUUID bool
 var omit string
 
 func main() {
@@ -24,12 +24,20 @@ func main() {
 	cmd := &cobra.Command{
 		Use:   "rand LENGTH_BYTES",
 		Short: "Print random bytes from a secure source to stdout.",
-		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			n, err := strconv.ParseUint(args[0], 10, 32)
-			fatal(err, "argument must be a positive 32bit integer")
-			bs := make([]byte, int(n))
-			var read func([]byte) (int, error) = rand.Read
+			var randSize int
+			if formatUUID {
+				randSize = 16
+			} else if len(args) != 1 {
+				n, err := strconv.ParseUint(args[0], 10, 32)
+				fatal(err, "argument must be a positive 32bit integer")
+				randSize = int(n)
+			} else {
+				cmd.Help()
+				os.Exit(1)
+			}
+			bs := make([]byte, randSize)
+			read := rand.Read
 			sourcelabel := "secure"
 
 			if seedstr != "" {
@@ -39,7 +47,7 @@ func main() {
 				sourcelabel = "insecure"
 				read = mathrand.Read
 			}
-			_, err = read(bs)
+			_, err := read(bs)
 			fatal(err, "failed to read random bytes from %v source", sourcelabel)
 
 			trailingNewline := "\n"
@@ -59,6 +67,10 @@ func main() {
 				fatal(err, "failed to write unformatted bytes to stdout")
 			case formatPassword:
 				fmt.Print(encodePassword(bs) + trailingNewline)
+			case formatUUID:
+				bs[6] = (bs[6] & 0x0f) | 0x40
+				bs[8] = (bs[8] & 0x3f) | 0x80
+				fmt.Printf("%x-%x-%x-%x-%x%v", bs[0:4], bs[4:6], bs[6:8], bs[8:10], bs[10:], trailingNewline)
 			default:
 				fmt.Print(hex.EncodeToString(bs) + trailingNewline)
 			}
@@ -74,6 +86,7 @@ func main() {
 	flags.BoolVarP(&formatPassword, "password", "p", false, "print a suitable password")
 	flags.StringVarP(&omit, "omit", "o", "", "omit the listed characters from generated passwords")
 	flags.BoolVarP(&omitNewline, "omit-newline", "n", false, "do not print the trailing newline character")
+	flags.BoolVarP(&formatUUID, "uuid", "u", false, "print a random (v4) UUID")
 
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
@@ -82,9 +95,10 @@ func main() {
 
 func listFormats() []string {
 	fm := map[string]bool{
-		"formatBase64":   formatBase64,
-		"formatBinary":   formatBinary,
-		"formatPassword": formatPassword,
+		"base64":   formatBase64,
+		"binary":   formatBinary,
+		"password": formatPassword,
+		"uuid":     formatUUID,
 	}
 	fs := make([]string, 0, len(fm))
 	for k, v := range fm {

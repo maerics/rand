@@ -28,7 +28,7 @@ func main() {
 			var randSize int
 			if formatUUID {
 				randSize = 16
-			} else if len(args) != 1 {
+			} else if len(args) == 1 {
 				n, err := strconv.ParseUint(args[0], 10, 32)
 				fatal(err, "argument must be a positive 32bit integer")
 				randSize = int(n)

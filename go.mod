@@ -1,4 +1,4 @@
-module rand
+module github.com/maerics/rand
 
 go 1.14
 
